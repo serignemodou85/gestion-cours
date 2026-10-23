@@ -6,4 +6,8 @@ API REST de planification des cours (Spring Boot).
 
 ![Diagramme de cas d'utilisation](docs/cas-utilisation.jpg)
 
-Source StarUML : [docs/usecase.mdj](docs/usecase.mdj)
+## Diagramme de classes
+
+![Diagramme de classes](docs/diagrammedeclasse.jpg)
+
+Source StarUML des deux diagrammes : [docs/diagrammedeclasse.mdj](docs/diagrammedeclasse.mdj)
