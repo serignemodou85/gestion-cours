@@ -2,3 +2,5 @@
 .idea/
 *.iml
 /docs/ENONCE-planification-cours.md
+# Configuration locale (contient le mot de passe MySQL)
+application-local.properties
