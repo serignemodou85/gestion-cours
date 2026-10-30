@@ -66,13 +66,6 @@ cd planification/src/main/resources
 copy application-local.properties.example application-local.properties
 ```
 
-(`cp` au lieu de `copy` sous Linux ou macOS.)
-
-```properties
-DB_NAME=planification
-DB_USER=planif_modou
-DB_PASSWORD=le_mot_de_passe_choisi_a_l_etape_1
-```
 
 **Comment ça marche.** La ligne `spring.config.import=optional:classpath:application-local.properties`
 demande à Spring de lire aussi ce fichier au démarrage. Spring remplace alors chaque `${DB_NAME}`,
