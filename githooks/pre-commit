@@ -1,0 +1,51 @@
+#!/bin/sh
+# githooks/pre-commit - refuse les ecarts aux interdits de l'enonce, section 11.
+# Activation, une fois par clone : git config core.hooksPath githooks
+
+echec=0
+
+# Les lignes ajoutees par ce commit, prefixees du nom de fichier.
+lignes_ajoutees() {
+    git diff --cached --unified=0 -- "$@" \
+        | awk '/^\+\+\+ b\// { f = substr($0, 7) } /^\+[^+]/ { print f ": " substr($0, 2) }'
+}
+#Regle 1 un secret en clair
+if lignes_ajoutees '*.java' '*.properties' '*.yml' '*.yaml' | grep -inE '(password|secret|token|apikey)[a-z_]*"?[[:space:]]*[=:][[:space:]]*[^[:space:]$]'; then
+    echo "Refus : un secret est ecrit en clair (interdit 1)."
+    echo " A la place une reference est accepter \${VARIABLE}"
+    echec=1
+fi
+
+
+# Regle 2 : injection par champ
+if lignes_ajoutees '*.java' | grep -n '@Autowired'; then
+    echo "Refus : @Autowired est interdit (interdit 2)."
+    echo "  A la place : @RequiredArgsConstructor et des champs private final."
+    echec=1
+fi
+
+# Regle 3
+if lignes_ajoutees '*.java' | grep -n 'System\.out\.print'; then
+    echo "Refus : System.out.print, System.out.println et System.out.printf sont interdits(interdit 3)."
+    echo "  A la place : utiliser @Slf4j et log.info(...), log.warn(...) ou log.error(...)."
+    echec=1
+fi
+
+# Regle 4 : Interdire throw new RuntimeException
+if lignes_ajoutees '*.java' | grep -n 'throw new RuntimeException'; then
+    echo "Refus : throw new RuntimeException est interdit."
+    echo "  A la place : une exception de exceptions qui porte le bon code HTTP (interdit 4)."
+    echec=1
+fi
+
+
+# Regle 5 : icones et emojis, dans tous les fichiers
+if lignes_ajoutees | LC_ALL=C.UTF-8 grep -nP '[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}\x{2B00}-\x{2BFF}\x{1F000}-\x{1F2FF}]'; then
+    echo "Refus : une icone ou un emoji est present (interdit 10)."
+    echo "  A la place : une phrase qui dit ce qu'elle avertit, avec des mots."
+    echec=1
+fi
+
+
+
+exit $echec
