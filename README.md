@@ -93,6 +93,19 @@ Started PlanificationApplication in ... seconds
 
 `HikariPool-1 - Start completed` confirme la connexion à MySQL. Arrêter avec `Ctrl+C`.
 
+### Jeu de données de départ
+
+Au premier démarrage, la classe `config/DataInitializer` (un `CommandLineRunner`) insère
+un jeu de test : une année scolaire courante (2026-2027), un semestre, 3 filières, 5 niveaux,
+5 classes, 2 professeurs, 2 salles, 3 modules et 3 étudiants.
+
+**Rejouable** : si une année scolaire existe déjà en base, rien n'est inséré. La console
+affiche alors `Jeu de donnees deja present : aucune insertion.`
+
+**Pourquoi un `CommandLineRunner` plutôt que `data.sql`** : les insertions passent par les
+repositories, donc `@PrePersist` remplit `createdAt` et `isActive` automatiquement, et les
+relations utilisent des objets vérifiés par le compilateur au lieu d'identifiants écrits en dur.
+
 ## 4. Activer le hook pre-commit
 
 À faire **une fois par clone**, depuis la racine du dépôt :
