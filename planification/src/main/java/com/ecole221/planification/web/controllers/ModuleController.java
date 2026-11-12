@@ -1,28 +1,18 @@
 package com.ecole221.planification.web.controllers;
 
-
-import com.ecole221.planification.web.dto.RestResponseDto;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-import com.ecole221.planification.services.ModuleService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 import java.util.Map;
 
-@RestController
-@RequiredArgsConstructor
-public class ModuleControllerImpl implements ModuleController {
+@RequestMapping("/api/v1/modules")
+public interface ModuleController {
 
-    private final ModuleService ModuleService;
+    @GetMapping
+    ResponseEntity<Map<Object, Object>> lister();
 
-    @Override
-    public ResponseEntity<Map<Object, Object>> lister() {
-        return ResponseEntity.ok(RestResponseDto.response(ModuleService.listerActifs(), HttpStatus.OK));
-    }
-
-    @Override
-    public ResponseEntity<Map<Object, Object>> trouver(Long id) {
-        return ResponseEntity.ok(RestResponseDto.response(ModuleService.trouverParId(id), HttpStatus.OK));
-    }
+    @GetMapping("/{id}")
+    ResponseEntity<Map<Object, Object>> trouver(@PathVariable Long id);
 }
-

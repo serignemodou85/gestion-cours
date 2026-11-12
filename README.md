@@ -106,6 +106,24 @@ affiche alors `Jeu de donnees deja present : aucune insertion.`
 repositories, donc `@PrePersist` remplit `createdAt` et `isActive` automatiquement, et les
 relations utilisent des objets vérifiés par le compilateur au lieu d'identifiants écrits en dur.
 
+### Endpoints disponibles
+
+| Méthode | Route | Réponse |
+|---|---|---|
+| GET | `/api/v1/modules` | les modules actifs : `{ "status": 200, "results": [...] }` |
+| GET | `/api/v1/modules/{id}` | un module, ou `{ "status": 404, "message": "Module introuvable : 999" }` |
+
+### Où `@JsonIgnore` est posé, et pourquoi
+
+Au lot 1, l'API renvoie des entités. Une relation dans les deux sens ferait boucler la
+sérialisation JSON à l'infini (un module contient ses cours, chaque cours contient son module).
+`@JsonIgnore` est posé sur le côté liste pour l'éviter. C'est une solution temporaire : les DTO
+du lot 2 supprimeront le problème.
+
+| Entité | Champ |
+|---|---|
+| `Module` | `cours` |
+
 ## 4. Activer le hook pre-commit
 
 À faire **une fois par clone**, depuis la racine du dépôt :
