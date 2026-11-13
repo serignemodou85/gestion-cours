@@ -134,3 +134,22 @@ Content-Type: application/json
 
 { "date": "2026-11-12", "heureDebut": "13:00", "heureFin": "15:00", "typeSession": "PRESENTIEL", "salleId": 1 }
 
+### Etape 6 - professeur 1, novembre 2026, module Spring Boot (id 2)
+GET http://localhost:8080/api/v1/professeurs/1/sessions?mois=2026-11&moduleId=2
+
+### Etape 6 - professeur 1, novembre 2026, tous modules
+GET http://localhost:8080/api/v1/professeurs/1/sessions?mois=2026-11
+
+### Etape 6 - professeur 1, sans mois (mois en cours par defaut)
+GET http://localhost:8080/api/v1/professeurs/1/sessions
+
+### Etape 6 - professeur inconnu (404)
+GET http://localhost:8080/api/v1/professeurs/999/sessions?mois=2026-11
+
+### Etape 6 - aucune session (200, liste vide, totaux a zero)
+GET http://localhost:8080/api/v1/professeurs/1/sessions?mois=2026-11&moduleId=3
+
+### Etape 6 - professeur 2 : seulement sa session du 12/11 de 13:00 a 15:00
+GET http://localhost:8080/api/v1/professeurs/2/sessions?mois=2026-11
+
+

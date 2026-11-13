@@ -53,4 +53,18 @@ public interface SessionCoursRepository extends JpaRepository<SessionCours, Long
                                           @Param("heureDebut") LocalTime heureDebut,
                                           @Param("heureFin") LocalTime heureFin,
                                           @Param("annulee") EtatSession annulee);
+
+    @Query("""
+            select s from SessionCours s
+            where s.cours.professeur.id = :professeurId
+            and s.date between :debut and :fin
+            and (:moduleId is null or s.cours.module.id = :moduleId) 
+            and s.isActive = true
+            order by s.date, s.heureDebut
+            """)
+    List<SessionCours> sessionsDuProfesseur(@Param("professeurId") Long professeurId,
+                                            @Param("debut") LocalDate debut,
+                                            @Param("fin") LocalDate fin,
+                                            @Param("moduleId") Long moduleId);
+
 }

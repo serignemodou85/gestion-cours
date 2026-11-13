@@ -130,6 +130,7 @@ le problème :
 | GET | `/api/v1/modules/{id}` | consulter un module précis |
 | POST | `/api/v1/cours` | planifier un nouveau cours |
 | POST | `/api/v1/cours/{coursId}/sessions` | planifier une séance d'un cours |
+| GET | `/api/v1/professeurs/{professeurId}/sessions` | voir les séances et les heures d'un professeur sur un mois |
 
 ### Planifier un cours
 
@@ -198,6 +199,41 @@ commence à 13:00 peut donc suivre une séance qui se termine à 13:00. La salle
 sont vérifiés séparément, directement en base, et les séances annulées ou désactivées ne
 comptent ni pour le quota ni pour les conflits.
 
+### Les heures d'un professeur sur un mois
+
+Cette route sert à l'attaché de classe pour suivre le travail d'un professeur :
+
+```http
+GET http://localhost:8080/api/v1/professeurs/1/sessions?mois=2026-11&moduleId=2
+```
+
+Les deux paramètres sont facultatifs. Sans `mois`, l'API prend le mois en cours. Sans
+`moduleId`, elle renvoie les séances de tous les modules du professeur.
+
+```json
+{
+  "status": 200,
+  "results": {
+    "professeur": { "id": 1, "nom": "marega", "prenom": "Aboubacar" },
+    "mois": "2026-11",
+    "totalHeuresPlanifiees": 5,
+    "totalHeuresEffectuees": 3,
+    "sessions": [ ... ]
+  }
+}
+```
+
+Les deux totaux ne mesurent pas la même chose. Les heures **effectuées** ne comptent que les
+séances validées par l'attaché, c'est-à-dire celles dont on sait qu'elles ont vraiment eu lieu.
+Les heures **planifiées** comptent les séances prévues et les séances validées, mais jamais les
+séances annulées.
+
+Le tri par professeur, par mois et par module est fait directement par la base de données, avec
+une requête JPQL : on ne charge que les séances utiles, même si la table en contient des milliers.
+
+Si le professeur n'existe pas, l'API répond `404`. S'il n'a aucune séance sur la période, elle
+répond `200` avec une liste vide et des totaux à zéro.
+
 ### Tester l'API
 
 Le fichier `planification/api-tests.http` contient toutes ces requêtes, cas d'erreur compris.
@@ -213,6 +249,10 @@ SET SQL_SAFE_UPDATES = 0;
 DELETE FROM session_cours;
 SET SQL_SAFE_UPDATES = 1;
 ```
+
+Pour voir la différence entre heures planifiées et effectuées, il faut au moins une séance
+validée. La validation par l'attaché n'existe pas encore dans l'API : on peut la simuler dans
+MySQL avec `UPDATE session_cours SET etat_session = 'VALIDEE' WHERE id = ...;`
 
 Pour le test du semestre hors de l'année courante, il faut un semestre rattaché à une année qui
 n'est pas courante. Le jeu de données n'en contient pas : on peut l'ajouter dans MySQL avec
