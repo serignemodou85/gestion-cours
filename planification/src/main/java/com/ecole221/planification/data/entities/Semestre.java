@@ -1,5 +1,6 @@
 package com.ecole221.planification.data.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,7 +26,7 @@ public class Semestre extends AbstractEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "annee_scolaire_id", nullable = false)
     private AnneeScolaire anneeScolaire;
-
+    @JsonIgnore
     @OneToMany(mappedBy = "semestre")
     private List<Cours> cours;
 

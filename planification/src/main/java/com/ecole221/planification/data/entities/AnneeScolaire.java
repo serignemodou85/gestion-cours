@@ -1,5 +1,5 @@
 package com.ecole221.planification.data.entities;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
@@ -26,10 +26,10 @@ public class AnneeScolaire extends AbstractEntity {
     private LocalDate dateFin;
     @Column(nullable = false)
     private Boolean estCourante=false;
-
+    @JsonIgnore
     @OneToMany(mappedBy = "anneeScolaire")
     private List<Semestre> semestres;
-
+    @JsonIgnore
     @OneToMany(mappedBy = "anneeScolaire")
     private List<ClasseAnneeScolaire> classesAnneeScolaire;
 

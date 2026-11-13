@@ -106,23 +106,110 @@ affiche alors `Jeu de donnees deja present : aucune insertion.`
 repositories, donc `@PrePersist` remplit `createdAt` et `isActive` automatiquement, et les
 relations utilisent des objets vérifiés par le compilateur au lieu d'identifiants écrits en dur.
 
-### Endpoints disponibles
+## Utiliser l'API
 
-| Méthode | Route | Réponse |
+Toutes les réponses ont la même forme. Quand tout se passe bien, on reçoit le code HTTP et le
+résultat dans `results` :
+
+```json
+{ "status": 200, "results": [ ... ] }
+```
+
+Quand quelque chose ne va pas, on reçoit le code d'erreur et un message en français qui explique
+le problème :
+
+```json
+{ "status": 404, "message": "Module introuvable : 999" }
+```
+
+### Les routes disponibles
+
+| Méthode | Route | À quoi elle sert |
 |---|---|---|
-| GET | `/api/v1/modules` | les modules actifs : `{ "status": 200, "results": [...] }` |
-| GET | `/api/v1/modules/{id}` | un module, ou `{ "status": 404, "message": "Module introuvable : 999" }` |
+| GET | `/api/v1/modules` | lister les modules actifs |
+| GET | `/api/v1/modules/{id}` | consulter un module précis |
+| POST | `/api/v1/cours` | planifier un nouveau cours |
 
-### Où `@JsonIgnore` est posé, et pourquoi
+### Planifier un cours
 
-Au lot 1, l'API renvoie des entités. Une relation dans les deux sens ferait boucler la
-sérialisation JSON à l'infini (un module contient ses cours, chaque cours contient son module).
-`@JsonIgnore` est posé sur le côté liste pour l'éviter. C'est une solution temporaire : les DTO
-du lot 2 supprimeront le problème.
+On envoie le quota d'heures, le module, le professeur, le semestre et les classes concernées :
 
-| Entité | Champ |
+```http
+POST http://localhost:8080/api/v1/cours
+Content-Type: application/json
+
+{
+  "nombreHeureGlobal": 60,
+  "moduleId": 2,
+  "professeurId": 1,
+  "semestreId": 1,
+  "classeIds": [1, 2]
+}
+```
+
+Si tout est correct, l'API répond `201` avec le cours créé. Il démarre à l'état `EN_COURS`, et
+chaque classe de la liste lui est rattachée.
+
+Avant de créer quoi que ce soit, l'API vérifie la demande et la refuse dans les cas suivants :
+
+| Situation | Réponse |
 |---|---|
+| le module, le professeur ou le semestre n'existe pas | `404`, par exemple « Module introuvable : 3 » |
+| une des classes n'existe pas | `404`, par exemple « Classe introuvable : 7 » |
+| la liste des classes est vide ou absente | `400` « Un cours doit s'adresser a au moins une classe » |
+| le nombre d'heures manque ou n'est pas positif | `400`, avec le détail du champ en cause |
+| le semestre n'appartient pas à l'année scolaire courante | `400` « Le semestre 2 n'appartient pas a l'annee scolaire courante » |
+
+La création est faite d'un seul bloc : si une classe est introuvable au milieu de la liste, rien
+n'est enregistré, pas même le cours.
+
+### Tester l'API
+
+Le fichier `planification/api-tests.http` contient toutes ces requêtes, cas d'erreur compris.
+Dans IntelliJ, on l'ouvre et on clique sur la flèche à côté de chaque requête (ou sur la double
+flèche en haut pour tout lancer d'un coup). L'application doit être démarrée.
+
+Pour le test du semestre hors de l'année courante, il faut un semestre rattaché à une année qui
+n'est pas courante. Le jeu de données n'en contient pas : on peut l'ajouter dans MySQL avec
+
+```sql
+INSERT INTO annee_scolaire (libelle, date_debut, date_fin, est_courante, is_active, created_at)
+VALUES ('2025-2026', '2025-09-01', '2026-07-31', false, true, NOW());
+
+INSERT INTO semestre (libelle, date_debut, date_fin, annee_scolaire_id, is_active, created_at)
+VALUES ('Semestre 1', '2025-09-01', '2026-01-31', LAST_INSERT_ID(), true, NOW());
+```
+
+### Pourquoi certaines relations n'apparaissent pas dans le JSON
+
+Pour l'instant, l'API renvoie directement les entités. Or beaucoup de relations existent dans
+les deux sens : un cours connaît son semestre, et le semestre connaît la liste de ses cours.
+En transformant un cours en JSON, on passerait donc du cours au semestre, du semestre à ses
+cours, de ces cours à leur semestre, et ainsi de suite sans fin. C'est ce qui s'est produit au
+premier essai : la réponse faisait plus de 80 ko et s'arrêtait en plein milieu.
+
+Pour casser ces boucles, on a masqué le côté « liste » de chaque relation avec `@JsonIgnore`.
+Un cours affiche donc toujours son module, son semestre et son professeur, mais un semestre
+n'affiche plus la liste de ses cours.
+
+| Entité | Champs masqués |
+|---|---|
+| `AnneeScolaire` | `semestres`, `classesAnneeScolaire` |
+| `Semestre` | `cours` |
+| `Filiere` | `classes` |
+| `Niveau` | `classes` |
+| `Classe` | `etudiants`, `classesAnneeScolaire`, `coursClasses` |
 | `Module` | `cours` |
+| `Professeur` | `cours` |
+| `Cours` | `sessionCours`, `coursClasses` |
+| `Salle` | `sessionCours` |
+
+Il y avait aussi un champ technique, `hibernateLazyInitializer`, qui apparaissait dans certaines
+réponses. Il vient d'Hibernate, qui ne charge certaines données qu'au moment où on en a besoin.
+Il est masqué une fois pour toutes avec `@JsonIgnoreProperties` sur `AbstractEntity`.
+
+Ces deux annotations sont une solution provisoire. Au lot 2, l'API renverra des objets de réponse
+dédiés (les DTO) au lieu des entités, et le problème disparaîtra à la source.
 
 ## 4. Activer le hook pre-commit
 
