@@ -8,6 +8,8 @@ import java.util.Map;
 
 public class RestResponseDto {
 
+    public static Map<Object, Object> response;
+
     // Réponse simple (sans pagination)
     public static Map<Object, Object> response(Object results, HttpStatus status) {
         Map<Object, Object> response = new HashMap<>();
