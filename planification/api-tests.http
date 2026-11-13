@@ -45,3 +45,92 @@ Content-Type: application/json
 
 { "nombreHeureGlobal": 60, "moduleId": 2, "professeurId": 1, "semestreId": 2, "classeIds": [1] }
 
+
+### Etape 5 - preparation : cours du professeur 1 (quota 60)
+POST http://localhost:8080/api/v1/cours
+Content-Type: application/json
+
+{ "nombreHeureGlobal": 60, "moduleId": 2, "professeurId": 1, "semestreId": 1, "classeIds": [1] }
+
+> {% client.global.set("coursId", response.body.results.id); %}
+
+### Etape 5 - preparation : cours du professeur 2 (petit quota de 3 heures)
+POST http://localhost:8080/api/v1/cours
+Content-Type: application/json
+
+{ "nombreHeureGlobal": 3, "moduleId": 3, "professeurId": 2, "semestreId": 1, "classeIds": [2] }
+
+> {% client.global.set("coursQuotaId", response.body.results.id); %}
+
+### Etape 5 - 1. nominal presentiel (201, nombreHeure = 3)
+POST http://localhost:8080/api/v1/cours/{{coursId}}/sessions
+Content-Type: application/json
+
+{ "date": "2026-11-12", "heureDebut": "10:00", "heureFin": "13:00", "typeSession": "PRESENTIEL", "salleId": 1 }
+
+### Etape 5 - 2. nominal en ligne (201)
+POST http://localhost:8080/api/v1/cours/{{coursId}}/sessions
+Content-Type: application/json
+
+{ "date": "2026-11-13", "heureDebut": "09:00", "heureFin": "11:00", "typeSession": "EN_LIGNE", "lienVisio": "https://meet.ecole221.sn/spring" }
+
+### Etape 5 - 3. cours inconnu (404)
+POST http://localhost:8080/api/v1/cours/999/sessions
+Content-Type: application/json
+
+{ "date": "2026-11-12", "heureDebut": "09:00", "heureFin": "12:00", "typeSession": "PRESENTIEL", "salleId": 1 }
+
+### Etape 5 - 4. heure de fin avant le debut (400)
+POST http://localhost:8080/api/v1/cours/{{coursId}}/sessions
+Content-Type: application/json
+
+{ "date": "2026-11-20", "heureDebut": "12:00", "heureFin": "10:00", "typeSession": "PRESENTIEL", "salleId": 1 }
+
+### Etape 5 - 5. presentiel sans salle (400)
+POST http://localhost:8080/api/v1/cours/{{coursId}}/sessions
+Content-Type: application/json
+
+{ "date": "2026-11-20", "heureDebut": "09:00", "heureFin": "11:00", "typeSession": "PRESENTIEL" }
+
+### Etape 5 - 6. en ligne avec une salle (400)
+POST http://localhost:8080/api/v1/cours/{{coursId}}/sessions
+Content-Type: application/json
+
+{ "date": "2026-11-20", "heureDebut": "09:00", "heureFin": "11:00", "typeSession": "EN_LIGNE", "salleId": 1, "lienVisio": "https://meet.ecole221.sn/x" }
+
+### Etape 5 - 7. en ligne sans lien visio (400)
+POST http://localhost:8080/api/v1/cours/{{coursId}}/sessions
+Content-Type: application/json
+
+{ "date": "2026-11-20", "heureDebut": "09:00", "heureFin": "11:00", "typeSession": "EN_LIGNE" }
+
+### Etape 5 - 8. date hors du semestre (400)
+POST http://localhost:8080/api/v1/cours/{{coursId}}/sessions
+Content-Type: application/json
+
+{ "date": "2027-03-01", "heureDebut": "09:00", "heureFin": "11:00", "typeSession": "PRESENTIEL", "salleId": 1 }
+
+### Etape 5 - 9. quota depasse (409) : 4 heures demandees pour un quota de 3
+POST http://localhost:8080/api/v1/cours/{{coursQuotaId}}/sessions
+Content-Type: application/json
+
+{ "date": "2026-11-20", "heureDebut": "08:00", "heureFin": "12:00", "typeSession": "PRESENTIEL", "salleId": 2 }
+
+### Etape 5 - 10. salle occupee (409) : salle 1 deja prise le 12/11 de 10:00 a 13:00 (test 1)
+POST http://localhost:8080/api/v1/cours/{{coursQuotaId}}/sessions
+Content-Type: application/json
+
+{ "date": "2026-11-12", "heureDebut": "11:00", "heureFin": "12:00", "typeSession": "PRESENTIEL", "salleId": 1 }
+
+### Etape 5 - 11. professeur occupe (409) : professeur 1 deja en cours le 12/11 de 10:00 a 13:00 (test 1)
+POST http://localhost:8080/api/v1/cours/{{coursId}}/sessions
+Content-Type: application/json
+
+{ "date": "2026-11-12", "heureDebut": "11:00", "heureFin": "12:00", "typeSession": "PRESENTIEL", "salleId": 2 }
+
+### Etape 5 - borne : 13:00-15:00 dans la salle 1 ne chevauche PAS 10:00-13:00 (201)
+POST http://localhost:8080/api/v1/cours/{{coursQuotaId}}/sessions
+Content-Type: application/json
+
+{ "date": "2026-11-12", "heureDebut": "13:00", "heureFin": "15:00", "typeSession": "PRESENTIEL", "salleId": 1 }
+
