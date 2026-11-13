@@ -1,0 +1,47 @@
+### Etape 3 - liste des modules actifs
+GET http://localhost:8080/api/v1/modules
+
+### Etape 3 - module inexistant (404)
+GET http://localhost:8080/api/v1/modules/999
+
+### Etape 4 - creer un cours (201)
+POST http://localhost:8080/api/v1/cours
+Content-Type: application/json
+
+{
+  "nombreHeureGlobal": 60,
+  "moduleId": 2,
+  "professeurId": 1,
+  "semestreId": 1,
+  "classeIds": [1, 2]
+}
+### Etape 4 - module inconnu (404)
+POST http://localhost:8080/api/v1/cours
+Content-Type: application/json
+
+{ "nombreHeureGlobal": 60, "moduleId": 999, "professeurId": 1, "semestreId": 1, "classeIds": [1, 2] }
+
+### Etape 4 - classe inconnue (404)
+POST http://localhost:8080/api/v1/cours
+Content-Type: application/json
+
+{ "nombreHeureGlobal": 60, "moduleId": 2, "professeurId": 1, "semestreId": 1, "classeIds": [1, 999] }
+
+### Etape 4 - aucune classe (400)
+POST http://localhost:8080/api/v1/cours
+Content-Type: application/json
+
+{ "nombreHeureGlobal": 60, "moduleId": 2, "professeurId": 1, "semestreId": 1, "classeIds": [] }
+
+### Etape 4 - nombreHeureGlobal negatif (400, validation)
+POST http://localhost:8080/api/v1/cours
+Content-Type: application/json
+
+{ "nombreHeureGlobal": -5, "moduleId": 2, "professeurId": 1, "semestreId": 1, "classeIds": [1] }
+
+### Etape 4 - semestre hors de l'annee courante (400)
+POST http://localhost:8080/api/v1/cours
+Content-Type: application/json
+
+{ "nombreHeureGlobal": 60, "moduleId": 2, "professeurId": 1, "semestreId": 2, "classeIds": [1] }
+

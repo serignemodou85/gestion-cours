@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.List;
 
@@ -21,10 +22,13 @@ public class Classe extends AbstractEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "niveau_id", nullable = false)
     private Niveau niveau;
+    @JsonIgnore
     @OneToMany(mappedBy = "classe")
     private List<Etudiant> etudiants;
+    @JsonIgnore
     @OneToMany(mappedBy = "classe")
     private List<ClasseAnneeScolaire> classesAnneeScolaire;
+    @JsonIgnore
     @OneToMany(mappedBy = "classe")
     private List<CoursClasse> coursClasses;
 
