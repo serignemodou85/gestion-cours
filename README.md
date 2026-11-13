@@ -129,6 +129,7 @@ le problème :
 | GET | `/api/v1/modules` | lister les modules actifs |
 | GET | `/api/v1/modules/{id}` | consulter un module précis |
 | POST | `/api/v1/cours` | planifier un nouveau cours |
+| POST | `/api/v1/cours/{coursId}/sessions` | planifier une séance d'un cours |
 
 ### Planifier un cours
 
@@ -163,11 +164,55 @@ Avant de créer quoi que ce soit, l'API vérifie la demande et la refuse dans le
 La création est faite d'un seul bloc : si une classe est introuvable au milieu de la liste, rien
 n'est enregistré, pas même le cours.
 
+### Planifier une session
+
+Une session est une séance concrète d'un cours : une date, une heure de début et une heure de
+fin. Elle se déroule soit en présentiel dans une salle, soit en ligne avec un lien de visio.
+
+```http
+POST http://localhost:8080/api/v1/cours/1/sessions
+Content-Type: application/json
+
+{ "date": "2026-11-12", "heureDebut": "09:00", "heureFin": "12:00", "typeSession": "PRESENTIEL", "salleId": 1 }
+```
+
+Pour une session en ligne, on remplace `salleId` par `lienVisio`. On n'envoie jamais le nombre
+d'heures : l'API le calcule à partir des deux horaires (ici 3 heures). La session démarre à
+l'état `PLANIFIEE`.
+
+Avant d'enregistrer la séance, l'API vérifie qu'elle est possible :
+
+| Situation | Réponse |
+|---|---|
+| le cours n'existe pas | `404` « Cours introuvable : 12 » |
+| l'heure de fin n'est pas après l'heure de début | `400` |
+| une session en présentiel sans salle | `400` |
+| une session en ligne avec une salle, ou sans lien de visio | `400` |
+| la date tombe en dehors du semestre du cours | `400` « La date du 01/03/2027 est hors du Semestre 1 » |
+| le quota d'heures du cours serait dépassé | `409` « Le quota de 60 heures serait dépassé : 58 heures déjà planifiées, 3 demandées » |
+| la salle est déjà prise sur ce créneau | `409` « La salle A101 est déjà occupée le 12/11/2026 de 10:00 à 13:00 » |
+| le professeur a déjà une séance sur ce créneau | `409` « Le professeur ... a déjà une session le 12/11/2026 de 10:00 à 13:00 » |
+
+Deux créneaux se chevauchent dès qu'ils ont au moins une minute en commun. Une séance qui
+commence à 13:00 peut donc suivre une séance qui se termine à 13:00. La salle et le professeur
+sont vérifiés séparément, directement en base, et les séances annulées ou désactivées ne
+comptent ni pour le quota ni pour les conflits.
+
 ### Tester l'API
 
 Le fichier `planification/api-tests.http` contient toutes ces requêtes, cas d'erreur compris.
 Dans IntelliJ, on l'ouvre et on clique sur la flèche à côté de chaque requête (ou sur la double
 flèche en haut pour tout lancer d'un coup). L'application doit être démarrée.
+
+Les tests des sessions commencent par créer deux cours, dont IntelliJ retient les identifiants
+pour les requêtes suivantes. Les séances créées restent en base : pour relancer toute la série,
+il faut d'abord vider la table des sessions (données de test uniquement) :
+
+```sql
+SET SQL_SAFE_UPDATES = 0;
+DELETE FROM session_cours;
+SET SQL_SAFE_UPDATES = 1;
+```
 
 Pour le test du semestre hors de l'année courante, il faut un semestre rattaché à une année qui
 n'est pas courante. Le jeu de données n'en contient pas : on peut l'ajouter dans MySQL avec
