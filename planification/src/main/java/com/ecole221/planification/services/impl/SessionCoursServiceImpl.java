@@ -40,23 +40,23 @@ public class SessionCoursServiceImpl implements SessionCoursService {
 
         // 2. Les heures sont cohérentes (400)
         if (!dto.getHeureFin().isAfter(dto.getHeureDebut())) {
-            throw new BadRequestException("L'heure de fin doit être postérieure à l'heure de début .");
+            throw new BadRequestException("L'heure de fin doit être postérieure à l'heure de début.");
         }
 
         // 3. RG3 : salle ou lien visio selon le type (400)
         Salle salle = null;
         if (dto.getTypeSession() == TypeSession.PRESENTIEL) {
             if (dto.getSalleId() == null) {
-                throw new BadRequestException("Une session en présentiel doit se tenir dans une salle .");
+                throw new BadRequestException("Une session en présentiel doit se tenir dans une salle.");
             }
             salle = salleRepository.findById(dto.getSalleId())
                     .orElseThrow(() -> new EntityNotFoundException("Salle", dto.getSalleId()));
         } else {
             if (dto.getSalleId() != null) {
-            throw new BadRequestException("Une session en ligne n'occupe pas de salle");
+            throw new BadRequestException("Une session en ligne n'occupe pas de salle.");
             }
         if (dto.getLienVisio() == null || dto.getLienVisio().isBlank()) {
-            throw new BadRequestException("Le lien de visioconférence est obligatoire pour une session en ligne");
+            throw new BadRequestException("Le lien de visioconférence est obligatoire pour une session en ligne.");
             }
         }
 
