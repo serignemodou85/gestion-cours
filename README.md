@@ -308,4 +308,7 @@ Ne pas contourner le hook avec `git commit --no-verify`.
 
 ![Diagramme de classes](docs/diagrammedeclasse.jpg)
 
+Documentation interactive de l'API : http://localhost:8080/docs
+
+
 Source StarUML des deux diagrammes : [docs/diagrammedeclasse.mdj](docs/diagrammedeclasse.mdj)
