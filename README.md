@@ -265,36 +265,18 @@ INSERT INTO semestre (libelle, date_debut, date_fin, annee_scolaire_id, is_activ
 VALUES ('Semestre 1', '2025-09-01', '2026-01-31', LAST_INSERT_ID(), true, NOW());
 ```
 
-### Pourquoi certaines relations n'apparaissent pas dans le JSON
+### Ce que renvoie l'API : des DTO, pas des entités
 
-Pour l'instant, l'API renvoie directement les entités. Or beaucoup de relations existent dans
-les deux sens : un cours connaît son semestre, et le semestre connaît la liste de ses cours.
-En transformant un cours en JSON, on passerait donc du cours au semestre, du semestre à ses
-cours, de ces cours à leur semestre, et ainsi de suite sans fin. C'est ce qui s'est produit au
-premier essai : la réponse faisait plus de 80 ko et s'arrêtait en plein milieu.
+Au lot 1, l'API renvoyait directement les entités. Comme beaucoup de relations existent dans
+les deux sens (un cours connaît son semestre, et le semestre connaît la liste de ses cours),
+la transformation en JSON tournait en boucle : la première réponse faisait plus de 80 ko et
+s'arrêtait en plein milieu. On avait alors masqué les listes avec `@JsonIgnore`.
 
-Pour casser ces boucles, on a masqué le côté « liste » de chaque relation avec `@JsonIgnore`.
-Un cours affiche donc toujours son module, son semestre et son professeur, mais un semestre
-n'affiche plus la liste de ses cours.
-
-| Entité | Champs masqués |
-|---|---|
-| `AnneeScolaire` | `semestres`, `classesAnneeScolaire` |
-| `Semestre` | `cours` |
-| `Filiere` | `classes` |
-| `Niveau` | `classes` |
-| `Classe` | `etudiants`, `classesAnneeScolaire`, `coursClasses` |
-| `Module` | `cours` |
-| `Professeur` | `cours` |
-| `Cours` | `sessionCours`, `coursClasses` |
-| `Salle` | `sessionCours` |
-
-Il y avait aussi un champ technique, `hibernateLazyInitializer`, qui apparaissait dans certaines
-réponses. Il vient d'Hibernate, qui ne charge certaines données qu'au moment où on en a besoin.
-Il est masqué une fois pour toutes avec `@JsonIgnoreProperties` sur `AbstractEntity`.
-
-Ces deux annotations sont une solution provisoire. Au lot 2, l'API renverra des objets de réponse
-dédiés (les DTO) au lieu des entités, et le problème disparaîtra à la source.
+Depuis le lot 2, chaque route renvoie un objet de réponse dédié (un DTO, dans
+`web/dto/response/`), construit par un mapper écrit à la main (dans `utils/mappers/`). Le DTO
+ne contient que ce qui intéresse le client : par exemple `moduleLibelle` plutôt que l'objet
+`Module` complet. Les entités ne sortent plus jamais de l'application, ce qui supprime les
+boucles à la source. Tous les `@JsonIgnore` ont donc été retirés.
 
 ## 4. Activer le hook pre-commit
 
