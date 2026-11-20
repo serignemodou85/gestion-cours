@@ -6,6 +6,7 @@ import com.ecole221.planification.data.enums.EtatSession;
 import com.ecole221.planification.data.repository.ProfesseurRepository;
 import com.ecole221.planification.data.repository.SessionCoursRepository;
 import com.ecole221.planification.exceptions.EntityNotFoundException;
+import com.ecole221.planification.services.BilanMoisProfesseur;
 import com.ecole221.planification.services.ProfesseurService;
 import com.ecole221.planification.web.dto.response.SessionsMoisProfesseurDto;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class ProfesseurServiceImpl implements ProfesseurService {
     private final SessionCoursRepository sessionCoursRepository;
 
     @Override
-    public SessionsMoisProfesseurDto sessionsDuMois(Long professeurId, YearMonth mois, Long moduleId) {
+    public BilanMoisProfesseur sessionsDuMois(Long professeurId, YearMonth mois, Long moduleId) {
         Professeur professeur = professeurRepository.findById(professeurId)
                 .orElseThrow(() -> new EntityNotFoundException("Professeur", professeurId));
 
@@ -48,12 +49,6 @@ public class ProfesseurServiceImpl implements ProfesseurService {
                 .mapToInt(SessionCours::getNombreHeure)
                 .sum();
 
-        return new SessionsMoisProfesseurDto(
-                new SessionsMoisProfesseurDto.ProfesseurResume(
-                        professeur.getId(), professeur.getNom(), professeur.getPrenom()),
-                periode.toString(),
-                planifiees,
-                effectuees,
-                sessions);
+        return new  BilanMoisProfesseur(professeur, periode, planifiees, effectuees, sessions);
     }
 }
