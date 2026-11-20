@@ -1,6 +1,7 @@
 package com.ecole221.planification.web.controllers.impl;
 
 import com.ecole221.planification.services.ProfesseurService;
+import com.ecole221.planification.utils.mappers.ProfesseurMapper;
 import com.ecole221.planification.web.controllers.ProfesseurController;
 import com.ecole221.planification.web.dto.RestResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +18,12 @@ import java.util.Map;
 public class ProfesseurControllerImpl implements ProfesseurController {
 
     private final ProfesseurService professeurService;
+    private final ProfesseurMapper professeurMapper;
+
 
     @Override
     public ResponseEntity<Map<Object, Object>> sessionsDuMois(Long professeurId, YearMonth mois, Long moduleId) {
-        return ResponseEntity.ok(RestResponseDto.response(professeurService.sessionsDuMois(professeurId, mois, moduleId), HttpStatus.OK));
+        return ResponseEntity.ok(RestResponseDto.response(
+                professeurMapper.toDto(professeurService.sessionsDuMois(professeurId, mois, moduleId)), HttpStatus.OK));
     }
 }

@@ -1,6 +1,6 @@
 package com.ecole221.planification.web.controllers.impl;
-import com.ecole221.planification.data.entities.SessionCours;
 import com.ecole221.planification.services.SessionCoursService;
+import com.ecole221.planification.utils.mappers.SessionCoursMapper;
 import com.ecole221.planification.web.controllers.SessionCoursController;
 import com.ecole221.planification.web.dto.RestResponseDto;
 import com.ecole221.planification.web.dto.request.SessionCoursRequestDto;
@@ -13,11 +13,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SessionCoursControllerImpl implements SessionCoursController {
     private final SessionCoursService sessionCoursService;
+    private final SessionCoursMapper sessionCoursMapper;
+
     @Override
     public ResponseEntity<Map<Object, Object>> planifier(Long coursId, SessionCoursRequestDto dto) {
-        SessionCours session = sessionCoursService.planifier(coursId, dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(RestResponseDto.response(session, HttpStatus.CREATED));
+                .body(RestResponseDto.response(sessionCoursMapper.toDto(sessionCoursService.planifier(coursId, dto)), HttpStatus.CREATED))
+                ;
     }
-
 }
