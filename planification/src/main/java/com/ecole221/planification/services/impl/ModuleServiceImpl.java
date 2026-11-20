@@ -1,10 +1,11 @@
 package com.ecole221.planification.services.impl;
 import com.ecole221.planification.data.repository.ModuleRepository;
 import com.ecole221.planification.services.ModuleService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import java.util.List;
 import com.ecole221.planification.exceptions.EntityNotFoundException;
 import com.ecole221.planification.data.entities.Module;
 
@@ -16,8 +17,9 @@ public class ModuleServiceImpl implements ModuleService {
     private final ModuleRepository moduleRepository;
 
     @Override
-    public List<Module> listerActifs() {
-        return moduleRepository.findByIsActiveTrue();
+    public Page<Module> listerActifs(Pageable pageable){
+        return moduleRepository.findByIsActiveTrue(pageable);
+
     }
 
     @Override

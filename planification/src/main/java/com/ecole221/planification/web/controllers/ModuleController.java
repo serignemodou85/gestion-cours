@@ -1,5 +1,7 @@
 package com.ecole221.planification.web.controllers;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,7 +13,8 @@ import java.util.Map;
 public interface ModuleController {
 
     @GetMapping
-    ResponseEntity<Map<Object, Object>> lister();
+    ResponseEntity<Map<Object, Object>> lister(@PageableDefault(size = 10) Pageable pageable);
+
 
     @GetMapping("/{id}")
     ResponseEntity<Map<Object, Object>> trouver(@PathVariable Long id);
