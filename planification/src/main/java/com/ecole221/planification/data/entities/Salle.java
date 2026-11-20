@@ -1,6 +1,5 @@
 package com.ecole221.planification.data.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
@@ -26,7 +25,6 @@ public class Salle extends AbstractEntity {
 
     @Column(nullable = false)
     private Integer nombrePlaces ;
-    @JsonIgnore
     @OneToMany(mappedBy = "salle")
     private List<SessionCours> sessionCours;
 
